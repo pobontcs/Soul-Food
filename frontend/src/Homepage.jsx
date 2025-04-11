@@ -34,6 +34,9 @@ function HomePage() {
             } else if (data.role === "inspector") {
                 navigate("/inspection");
             }
+            else if(data.role==="wareHouse"){
+                navigate("/warehouse");
+            }
         } else {
             alert("Invalid email or password!");
         }

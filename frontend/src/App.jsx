@@ -9,6 +9,7 @@ import HomePage from './Homepage';
 import Dash from './dash';
 import Inspection from './inspection';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import WareHouse from './Warehouse';
 
 
 function App(){
@@ -18,6 +19,8 @@ function App(){
               <Route path='/' element={<HomePage/>}/>
               <Route path='/613BRH023' element={<Dash/>}/>
               <Route path='/inspection' element={<Inspection/>}/>
+              <Route path='/warehouse' element={<WareHouse/>}/>
+              
           </Routes>
         
         </BrowserRouter>

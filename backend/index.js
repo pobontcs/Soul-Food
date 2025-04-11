@@ -14,6 +14,10 @@ const inspector={
     email:"inspect",
     password:"1234"
 }
+const wareHouse={
+    email:"storage",
+    password:"1234"
+}
 
 app.post("/api/login", (req, res) => {
     const { email, password } = req.body;
@@ -23,6 +27,9 @@ app.post("/api/login", (req, res) => {
     } 
     else if (email === inspector.email && password === inspector.password) {
         res.json({ success: true, role: "inspector", message: "Login Successful" });
+    }
+    else if(email===wareHouse.email && password=== wareHouse.password){
+        res.json({success:true,role:"wareHouse",message:"loginSuccessful"});
     } 
     else {
         res.status(401).json({ success: false, message: "Invalid credentials" });
