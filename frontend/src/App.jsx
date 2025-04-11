@@ -10,6 +10,7 @@ import Dash from './dash';
 import Inspection from './inspection';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import WareHouse from './Warehouse';
+import Batching from './batching';
 
 
 function App(){
@@ -20,6 +21,7 @@ function App(){
               <Route path='/613BRH023' element={<Dash/>}/>
               <Route path='/inspection' element={<Inspection/>}/>
               <Route path='/warehouse' element={<WareHouse/>}/>
+              <Route path='/batching' element={<Batching/>}/>
               
           </Routes>
         

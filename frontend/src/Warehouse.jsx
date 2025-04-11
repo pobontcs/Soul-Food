@@ -24,8 +24,11 @@ function WareHouse() {
   const navigate = useNavigate();
 
         const inputStorage= <div className='d-flex flex-column'>
-              <div className='card'>
-
+              <div className='card d-flex flex-row'>
+                      <input className='bg-white mx-2 border-1 rounded-1' placeholder='Batch Id'>
+                      </input>
+                      <input className='bg-white mx-2 border-1 rounded-1' placeholder='WareHouseId'></input>
+                      
               </div>
 
         </div>
@@ -60,7 +63,7 @@ function WareHouse() {
 
 
       <div className=' card d-flex flex-column mx-3' style={{height:"1000px",width:"800px"}}>
-
+        {inputStorage}
       </div>
 
     </div>

@@ -29,7 +29,7 @@ app.post("/api/login", (req, res) => {
         res.json({ success: true, role: "inspector", message: "Login Successful" });
     }
     else if(email===wareHouse.email && password=== wareHouse.password){
-        res.json({success:true,role:"wareHouse",message:"loginSuccessful"});
+        res.json({success:true,role:"wareHouse",message:"Login Successful"});
     } 
     else {
         res.status(401).json({ success: false, message: "Invalid credentials" });
