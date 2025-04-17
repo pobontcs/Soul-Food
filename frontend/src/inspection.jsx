@@ -40,7 +40,18 @@ const ChartComponent = ({ chemicalRate, temperature }) => {
 };
 
 function Inspection() {
+
+        const [onTable,setTable]=useState("WareHouse");
+
     const column = ["QCID", "Safety Rate", "Temperature", "Quantity", "Inspector Id", "Date"];
+    const column2 = ["wareHouseID","BatchID","EntryDate"];
+    const data2D = [
+        [101, "BATCH-001", "2025-04-01"],
+        [102, "BATCH-002", "2025-04-05"],
+        [103, "BATCH-003", "2025-04-10"],
+        [104, "BATCH-004", "2025-04-12"],
+        [105, "BATCH-005", "2025-04-15"]
+      ];
     const data = [
         ["QC1234", "High", "25°C", 100, "INS001", "2025-03-22"],
         ["QC1235", "Medium", "30°C", 150, "INS002", "2025-03-21"],
@@ -48,6 +59,10 @@ function Inspection() {
         ["QC1237", "High", "28°C", 120, "INS004", "2025-03-19"],
         ["QC1238", "Medium", "26°C", 180, "INS005", "2025-03-18"]
     ];
+
+                const QcRecords=(<TableView data={data} columns={column} tableName={"QC DATA"} />);
+                const BatchRecords=(<TableView data={data2D} columns={column2} tableName={"Batch DATA"} />);
+
 
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
@@ -84,7 +99,7 @@ function Inspection() {
                     </div>
                     <ul className='list-group list-group-flush'>
                         <li className="list-group-item my-2 rounded">
-                            <input className='rounded border-0 p-1 bg-transparent text-dark' placeholder='Retailer Id'></input>
+                            <input className='rounded border-0 p-1 bg-transparent text-dark' placeholder='Inspect Id'></input>
                         </li>
                         <li className="list-group-item my-2">
                             <input className='rounded border-1 p-1 bg-transparent text-dark' placeholder='WareHouse Id'></input>
@@ -96,6 +111,30 @@ function Inspection() {
                             <label className='mx-2'>Expire Date</label>
                             <input type='date' className='rounded border-1 p-1 text-dark bg-transparent'></input>
                         </li>
+                        <li className="d-flex flex-row list-group-item my-2">
+  <label className='mx-2'>Humidity</label>
+  <div className="position-relative">
+    <input
+      type='number'
+      className='rounded border-1 p-1 pe-4 text-dark bg-transparent'
+      defaultValue={50}
+      style={{ width: '80px' }}
+    />
+    <span
+      className="position-absolute"
+      style={{
+        right: '10px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        pointerEvents: 'none',
+        color: 'gray'
+      }}
+    >
+      %
+    </span>
+  </div>
+</li>
+
                         {/* Preservative Rate Input */}
                         <li className="d-flex flex-row list-group-item my-2">
                             <label className='mx-3'>Preservative Rate</label>
@@ -114,8 +153,16 @@ function Inspection() {
                 </div>
 
                 {/* Table View */}
-                <div className='card mx-lg-5' style={{ backgroundColor: "#575757", boxShadow: "0 10px 10px" }}>
-                    <TableView data={data} columns={column} tableName={"QC DATA"} />
+                <div className='card mx-lg-5 d-flex flex-column' style={{ backgroundColor: "#575757", boxShadow: "0 10px 10px" }}>
+                    <div className=' d-flex card-header flex-row'>
+                        <button onClick={()=>{setTable("Batching")}}><i className='fas fa-magnifying-glass'></i></button>
+                        <button onClick={()=>{setTable("WareHouse")}}><i className='fas fa-house'></i></button>
+                    </div>
+                    <div>
+                                    {onTable=== "WareHouse" && QcRecords}
+                                    {onTable=== "Batching" && BatchRecords}
+                    </div>
+                    
                 </div>
             </div>
 

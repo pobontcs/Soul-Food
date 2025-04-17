@@ -1,39 +1,59 @@
-const express=require("express");
-const cors=require("cors")
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
-const app=express();
-
+dotenv.config();
+const db=require("./db/connection");
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-const validUser ={
-email:"admin",
-password:"1234"
+// Dummy users for login
+const users = {
+  admin: { email: "admin", password: "1234" },
+  inspector: { email: "inspect", password: "1234" },
+  wareHouse: { email: "storage", password: "1234" },
 };
-const inspector={
-    email:"inspect",
-    password:"1234"
-}
-const wareHouse={
-    email:"storage",
-    password:"1234"
-}
 
+// Login route
 app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    if (email === validUser.email && password === validUser.password) {
-        res.json({ success: true, role: "admin", message: "Login Successful" });
-    } 
-    else if (email === inspector.email && password === inspector.password) {
-        res.json({ success: true, role: "inspector", message: "Login Successful" });
+  for (const role in users) {
+    if (users[role].email === email && users[role].password === password) {
+      return res.json({ success: true, role, message: "Login Successful" });
     }
-    else if(email===wareHouse.email && password=== wareHouse.password){
-        res.json({success:true,role:"wareHouse",message:"Login Successful"});
-    } 
-    else {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
-    }
+  }
+
+  res.status(401).json({ success: false, message: "Invalid credentials" });
+});
+
+app.post("/api/farm", (req,res)=>{
+    const {FarmName,FarmLocation,AreaNo}=req.body;
+    if (!FarmName || !FarmLocation || !AreaNo) {
+        return res.status(400).json({ success: false, message: "All fields required" });
+      }
+    const sql="INSERT INTO FARM(AreaNo,FarmName,Location) VALUES(?,?,?)";
+    db.query(sql,[AreaNo,FarmName,FarmLocation],(err,result)=>{
+        if(err){
+            console.error("Insert error:", err);
+      return res.status(500).json({ success: false, message: "Database insert error" });
+      
+        }res.json({ success: true, message: "Farm added successfully" });
+    })
+});
+
+app.get('/api/farms',(req,res)=>{
+    db.query('SELECT * FROM FARM',(err,results,fields)=>{
+        if(err){
+            console.error('Error Fetching Farm Data',err);
+            return res.status(500).json({success:false,message:'DB error'});
+        }
+        const columns=fields.map(field=>field.name);
+        const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+    });
 });
 
 
