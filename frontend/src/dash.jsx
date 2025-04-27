@@ -16,7 +16,8 @@ function Dash() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [sideBarOpen, setSideBarOpen] = useState(false);
   const navigate = useNavigate();
-
+  const [data2, setData2] = useState([]);
+  const [columns2, setColumns2] = useState([]);
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -40,6 +41,24 @@ function Dash() {
     ["26LMN", "Soy Milk", "20/04/25", "28/04/25"]
   ];
 
+  
+
+  
+  const fetchBatchData= async () =>{
+
+    try {
+      const res = await axios.get('http://localhost:5001/api/farms');
+      if (res.data.success) {
+        setColumns2(res.data.columns);
+        setData2(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    }
+  };
+
+
+
   return (
     <div className="d-flex flex-column vh-100">
       {/* Header */}
@@ -51,7 +70,11 @@ function Dash() {
           <i className="fas fa-bars"></i>
         </button>
         <h1 className="fw-bold m-0">Soul Food</h1>
-      </div>
+      </div> 
+      
+      
+      
+      
 
       {/* Main Layout with Sidebar & Content */}
       <div className="d-flex flex-grow-1">
@@ -90,6 +113,15 @@ function Dash() {
               <h1>{totalBatches}</h1>
             </div>
           </div>
+          <div className='d-flex flex-row mx-5 my-5'>
+          <button className="my-2  mx-2 rounded-1 shadow"> <i className="fas fa-bolt"></i></button>
+          <button className="my-2 mx-2 rounded-1"> <i className="fas fa-truck"></i></button>
+          <button className="my-2 mx-2 rounded-1"> <i className="fas fa-search"></i></button>
+          <button className="my-2 mx-2 rounded-1"> <i className="fas fa-box"></i></button>
+          <button className="my-2 mx-2 rounded-1" onClick={fetchBatchData}> <i className="fas fa-leaf"></i></button>
+          
+
+      </div>
 
           {/* Table */}
           <div className="mt-4">

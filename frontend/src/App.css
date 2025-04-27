@@ -56,3 +56,31 @@
 .sidebar-open {
   transform: translateX(0);
 }
+.animate-text {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 2s ease-out forwards;
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.word-by-word {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: revealWords 3s linear forwards;
+  font-weight: bold;
+}
+
+@keyframes revealWords {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}

@@ -10,8 +10,36 @@
     <script src="https://kit.fontawesome.com/YOUR_FONT_AWESOME_KIT.js" crossorigin="anonymous"></script>
 
     <title>DashBoard</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+        }
+        .bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+        #root2 {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+
 </head>
 <body>
+    <video class="bg-video" autoplay muted loop>
+        <source src="bgm.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
            <div id="root2"></div>
            <script type="module" src="/src/main2.jsx"></script> 
 </body>

@@ -11,13 +11,15 @@ import Inspection from './inspection';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import WareHouse from './Warehouse';
 import Batching from './batching';
+import Landing from './landing';
 
 
 function App(){
   return(
         <BrowserRouter>
           <Routes>
-              <Route path='/' element={<HomePage/>}/>
+              <Route path='/' element={<Landing/>}/>
+              <Route path='/login' element={<HomePage/>}/>
               <Route path='/613BRH023' element={<Dash/>}/>
               <Route path='/inspection' element={<Inspection/>}/>
               <Route path='/warehouse' element={<WareHouse/>}/>
