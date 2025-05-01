@@ -81,6 +81,30 @@ app.post('/api/req',(req,res)=>{
 
 });
 
+app.post("/api/warehouse/entry",(req,res)=>{
+
+      const {Capacity,WarehouseType,Name,Location}=req.body;
+
+      if(!Capacity||!WarehouseType||!Name||!Location){
+           return res.status(400).json({ success: false, message: "All fields are required" });
+      }
+
+      const inserTionSql=`INSERT INTO WAREHOUSE(Capacity,WarehouseType,Name,Location) VALUES(?,?,?,?)`;
+
+      db.query(inserTionSql,[Capacity,WarehouseType,Name,Location],(err,result)=>{
+        if(err){
+          console.error("Insert error:", err);
+          return res.status(500).json({ success: false, message: "Database insert error" });
+        }
+        res.json({ success: true, message: "Request sent successfully" });
+      })
+
+})
+
+
+
+
+
 
 app.post("/api/batch/entry", (req, res) => {
   const { InspectID, QueryID, Quantity, expireDate, Humidity, PreserveRate, Temperature } = req.body;
@@ -163,6 +187,97 @@ app.post("/api/batch/entry", (req, res) => {
 
                 return res.status(200).json({ success: true, message: "Batch entry completed successfully" });
               });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+app.post("/api/warehouse/batch/entry", (req, res) => {
+  const { BatchID, WarehouseID, Quantity, TransportationID } = req.body;
+
+  if (!BatchID || !WarehouseID || !Quantity || !TransportationID) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
+  }
+
+  const selectBatchSql = `SELECT Temprature, Quantity, Humidity FROM BATCH WHERE BatchID = ?`;
+
+  db.query(selectBatchSql, [BatchID], (err, batchResult) => {
+    if (err) {
+      console.log("Error fetching batch data:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+
+    if (batchResult.length === 0) {
+      return res.status(404).json({ success: false, message: "Batch not found" });
+    }
+
+    const { Temprature, Humidity } = batchResult[0];
+
+    const insertBatchWarehouseSql = `
+      INSERT INTO BATCH_WAREHOUSE (BatchID, WarehouseID, EntryDate,Quantity)
+      VALUES (?, ?, CURDATE(),?)
+    `;
+
+    db.query(insertBatchWarehouseSql, [BatchID, WarehouseID,Quantity], (err, insertResult) => {
+      if (err) {
+        console.log("Error inserting into BATCH_WAREHOUSE:", err);
+        return res.status(500).json({ success: false, message: "Database error" });
+      }
+
+      const updateSupplyChainSql = `
+        UPDATE SUPPLYCHAIN_MOVEMENT
+        SET Stage = 'Warehouse'
+        WHERE BatchID = ?
+      `;
+
+      db.query(updateSupplyChainSql, [BatchID], (err, updateResult) => {
+        if (err) {
+          console.log("Error updating SUPPLYCHAIN_MOVEMENT:", err);
+          return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        const updateWarehouseCapacitySql = `
+          UPDATE WAREHOUSE
+          SET Capacity = Capacity - ?
+          WHERE WarehouseID = ?
+        `;
+
+        db.query(updateWarehouseCapacitySql, [Quantity, WarehouseID], (err, warehouseUpdateResult) => {
+          if (err) {
+            console.log("Error updating WAREHOUSE capacity:", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+          }
+
+          // Insert into TRANSPORT_BATCH
+          const insertTransportBatchSql = `
+            INSERT INTO TRANSPORT_BATCH (BatchID, TransportationID, Quantity, Humidity,Temprature)
+            VALUES (?, ?, ?, ?,?)
+          `;
+
+          db.query(insertTransportBatchSql, [BatchID, TransportationID, Quantity, Humidity,Temprature], (err, transportBatchResult) => {
+            if (err) {
+              console.log("Error inserting into TRANSPORT_BATCH:", err);
+              return res.status(500).json({ success: false, message: "Database error" });
+            }
+
+            // Update TRANSPORT Available = 'no'
+            const updateTransportSql = `
+              UPDATE TRANSPORT
+              SET Available = 'no'
+              WHERE TransportationID = ?
+            `;
+
+            db.query(updateTransportSql, [TransportationID], (err, transportUpdateResult) => {
+              if (err) {
+                console.log("Error updating TRANSPORT availability:", err);
+                return res.status(500).json({ success: false, message: "Database error" });
+              }
+
+              // Final success response
+              return res.status(200).json({ success: true, message: "Batch entry recorded successfully" });
             });
           });
         });
@@ -278,6 +393,158 @@ app.get('/api/reqs',(req,res)=>{
         res.json({success:true,columns,data});
   })
 });
+app.get("/api/warehouses",(req,res)=>{
+  db.query('SELECT * FROM WAREHOUSE',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+});
+app.get("/api/supplychain",(req,res)=>{
+  db.query('SELECT * FROM SUPPLYCHAIN_MOVEMENT',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+});
+app.get("/api/add/prod/warehouse",(req,res)=>{
+  db.query('SELECT WarehouseID, Capacity, WarehouseType FROM WAREHOUSE',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+
+});
+app.get("/api/add/prod/warehouse",(req,res)=>{
+  db.query('SELECT WarehouseID, Capacity, WarehouseType FROM WAREHOUSE',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+
+});
+app.get("/api/add/prod/batch",(req,res)=>{
+  db.query('SELECT BatchID,ProductId,FarmID,Quantity FROM BATCH',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+
+});
+app.get("/api/set/transport", (req, res) => {
+  db.query(`SELECT TransportationID FROM TRANSPORT WHERE Available='yes'`, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'DB error' });
+    }
+    
+    
+    const transportIds = results.map(row => row.TransportationID);
+
+    res.json({ success: true, data: transportIds });
+  });
+});
+
+app.get('/api/retail', (req, res) => {
+  const query = `
+      SELECT 
+          bw.BatchID,
+          p.ProdName,
+          p.Origin,
+          bw.Quantity
+      FROM 
+          BATCH_WAREHOUSE bw
+      JOIN 
+          BATCH b ON bw.BatchID = b.BatchID
+      JOIN 
+          PRODUCT p ON b.ProductID = p.ProductID;
+  `;
+
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Query failed:', err);
+          return res.status(500).json({ success: false, error: 'Query failed' });
+      }
+
+      res.json({
+          success: true,
+          data: results
+      });
+  });
+});
+
+app.get('/api/farm/count',(req,res)=>{
+       const query=`SELECT COUNT(*) AS total_rows
+                    FROM FARM
+       ` ;
+       db.query(query,(err,results)=>{
+                if(err){
+                  console.error('query failed',err);
+                  return res.status(500).json({ success: false, error: 'Query failed' });
+                }
+                res.json({
+                  success: true,
+                  data: results[0].total_rows
+              });
+       })
+});
+app.get('/api/ware/count',(req,res)=>{
+       const query=`SELECT COUNT(*) AS total_rows
+                    FROM WAREHOUSE
+       ` ;
+       db.query(query,(err,results)=>{
+                if(err){
+                  console.error('query failed',err);
+                  return res.status(500).json({ success: false, error: 'Query failed' });
+                }
+                res.json({
+                  success: true,
+                  data: results[0].total_rows
+              });
+       })
+});
+app.get('/api/batch/count',(req,res)=>{
+       const query=`SELECT COUNT(*) AS total_rows
+                    FROM BATCH
+       ` ;
+       db.query(query,(err,results)=>{
+                if(err){
+                  console.error('query failed',err);
+                  return res.status(500).json({ success: false, error: 'Query failed' });
+                }
+                res.json({
+                  success: true,
+                  data: results[0].total_rows
+              });
+       })
+});
+
+
 
 
 const PORT = process.env.PORT || 5001;

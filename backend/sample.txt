@@ -1,0 +1,82 @@
+const selectBatchSql = `SELECT Temprature, Quantity, Humidity FROM BATCH WHERE BatchID = ?`;
+
+  db.query(selectBatchSql, [BatchID], (err, batchResult) => {
+    if (err) {
+      console.log("Error fetching batch data:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+
+    if (batchResult.length === 0) {
+      return res.status(404).json({ success: false, message: "Batch not found" });
+    }
+
+    const { Temprature, Humidity } = batchResult[0];
+
+    const insertBatchWarehouseSql = `
+      INSERT INTO BATCH_WAREHOUSE (BatchID, WarehouseID, EntryDate, ExitDate, Temperature, Quantity, Humidity)
+      VALUES (?, ?, CURDATE(), NULL, ?, ?, ?)
+    `;
+
+    db.query(insertBatchWarehouseSql, [BatchID, WarehouseID, Temprature, Quantity, Humidity], (err, insertResult) => {
+      if (err) {
+        console.log("Error inserting into BATCH_WAREHOUSE:", err);
+        return res.status(500).json({ success: false, message: "Database error" });
+      }
+
+      const updateSupplyChainSql = `
+        UPDATE SUPPLYCHAIN_MOVEMENT
+        SET Stage = 'Warehouse'
+        WHERE BatchID = ?
+      `;
+
+      db.query(updateSupplyChainSql, [BatchID], (err, updateResult) => {
+        if (err) {
+          console.log("Error updating SUPPLYCHAIN_MOVEMENT:", err);
+          return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        const updateWarehouseCapacitySql = `
+          UPDATE WAREHOUSE
+          SET Capacity = Capacity - ?
+          WHERE WarehouseID = ?
+        `;
+
+        db.query(updateWarehouseCapacitySql, [Quantity, WarehouseID], (err, warehouseUpdateResult) => {
+          if (err) {
+            console.log("Error updating WAREHOUSE capacity:", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+          }
+
+          // Insert into TRANSPORT_BATCH
+          const insertTransportBatchSql = `
+            INSERT INTO TRANSPORT_BATCH (BatchID, TransportationID, Quantity, Humidity,Temprature)
+            VALUES (?, ?, ?, ?,?)
+          `;
+
+          db.query(insertTransportBatchSql, [BatchID, TransportationID, Quantity, Humidity,Temprature], (err, transportBatchResult) => {
+            if (err) {
+              console.log("Error inserting into TRANSPORT_BATCH:", err);
+              return res.status(500).json({ success: false, message: "Database error" });
+            }
+
+            // Update TRANSPORT Available = 'no'
+            const updateTransportSql = `
+              UPDATE TRANSPORT
+              SET Available = 'no'
+              WHERE TransportationID = ?
+            `;
+
+            db.query(updateTransportSql, [TransportationID], (err, transportUpdateResult) => {
+              if (err) {
+                console.log("Error updating TRANSPORT availability:", err);
+                return res.status(500).json({ success: false, message: "Database error" });
+              }
+
+              // Final success response
+              return res.status(200).json({ success: true, message: "Batch entry recorded successfully" });
+            });
+          });
+        });
+      });
+    });
+  });

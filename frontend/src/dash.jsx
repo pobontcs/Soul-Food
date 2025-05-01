@@ -7,17 +7,18 @@ import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-
+import axios from "axios";
 function Dash() {
-  const activeZones = 5;
-  const totalWareHouse = 100;
-  const totalBatches = 100;
+  const [activeZones,setActiveZones] = useState();
+  const [totalWareHouse,setActiveWares] = useState();
 
+  const [totalBatches,setTotalBatches] = useState();
+  const[navigateBar,setNavigateBar]=useState('Supplychain');
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [sideBarOpen, setSideBarOpen] = useState(false);
   const navigate = useNavigate();
   const [data2, setData2] = useState([]);
-  const [columns2, setColumns2] = useState([]);
+  const [column2, setColumn2] = useState([]);
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -27,40 +28,110 @@ function Dash() {
   const signout = () => {
     navigate("/");
   };
+  useEffect(()=>{
+        const fetchFarmCount= async ()=>{
+              try{
+                    const res =await axios.get('http://localhost:5001/api/farm/count');
+                    if (res.data.success){
+                      setActiveZones(res.data.data);
+                    }
 
-  const columns = ["BatchId", "ProductID", "HarvestDate", "Processing Date"];
-  const data = [
-    ["24ABC", "Wheat", "10/02/25", "15/02/25"],
-    ["24ABC", "Flour", "10/02/25", "16/02/25"],
-    ["24ABC", "Bread", "10/02/25", "17/02/25"],
-    ["25XYZ", "Corn", "15/03/25", "20/03/25"],
-    ["25XYZ", "Popcorn", "15/03/25", "22/03/25"],
-    ["25XYZ", "Cornflakes", "15/03/25", "23/03/25"],
-    ["26LMN", "Soybeans", "20/04/25", "25/04/25"],
-    ["26LMN", "Tofu", "20/04/25", "27/04/25"],
-    ["26LMN", "Soy Milk", "20/04/25", "28/04/25"]
-  ];
+              }
+              catch(err){
+                alert("Ui error")
+              }
 
-  
 
-  
+
+        }; fetchFarmCount();
+
+  },[]);
+  useEffect(()=>{
+        const fetchWareCount= async ()=>{
+              try{
+                    const res =await axios.get('http://localhost:5001/api/ware/count');
+                    if (res.data.success){
+                      setActiveWares(res.data.data);
+                    }
+
+              }
+              catch(err){
+                alert("Ui error")
+              }
+
+
+
+        }; fetchWareCount();
+
+  },[]);
+  useEffect(()=>{
+        const fetchBatchCount= async ()=>{
+              try{
+                    const res =await axios.get('http://localhost:5001/api/batch/count');
+                    if (res.data.success){
+                      setTotalBatches(res.data.data);
+                    }
+
+              }
+              catch(err){
+                alert("Ui error")
+              }
+
+
+
+        }; fetchBatchCount();
+
+  },[]);
+
+
+
+
+  useEffect(()=>{
+    
+    const fetchBatchData= async ()=>{
+        try{
+            const res = await axios.get('http://localhost:5001/api/show/batch');
+                if(res.data.success){
+                    setData2(res.data.data);
+                    setColumn2(res.data.columns);
+                }
+                else{
+                    alert("API Error");
+                }
+        }
+        catch(err){
+            console.log(err);
+            alert("UI error",err);
+        }
+    }; fetchBatchData();
+},[]);
+
+  const [columns,setColumns] = useState([]);
+  const [data,setData]=useState([]);  
+
+  useEffect(()=>{
   const fetchBatchData= async () =>{
 
     try {
-      const res = await axios.get('http://localhost:5001/api/farms');
+      const res = await axios.get('http://localhost:5001/api/supplychain');
       if (res.data.success) {
-        setColumns2(res.data.columns);
-        setData2(res.data.data);
+        setColumns(res.data.columns);
+        setData(res.data.data);
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
     }
   };
-
-
+  fetchBatchData();
+},[]);
+const supplyChainData=(<TableView data={data} columns={columns} width="100%" />);
+const BatchRecords=(<TableView data={data2} columns={column2} tableName={"Batch DATA"} />);
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <div className="d-flex flex-column vh-100" style={{
+      width:"1300px"
+
+    }}>
       {/* Header */}
       <div className="d-flex align-items-center bg-warning text-dark p-2 rounded">
         <button
@@ -77,7 +148,7 @@ function Dash() {
       
 
       {/* Main Layout with Sidebar & Content */}
-      <div className="d-flex flex-grow-1">
+      <div className="d-flex flex-grow-1" style={{height:"1200px"}}>
         {/* Sidebar */}
         <div
           className={`sidebar bg-dark text-white p-3 ${
@@ -98,10 +169,10 @@ function Dash() {
           {/* Info Cards */}
           <div className="d-flex flex-wrap gap-4">
             <div style={{ width: "150px", height: "100px" }}>
-              <CircularProgressbar value={70} text="Storage" />
+              <CircularProgressbar value={70} maxValue={200} text="Storage" />
             </div>
             <div className="card p-4">
-              <p>Active Zones</p>
+              <p>Active Farms</p>
               <h1>{activeZones}</h1>
             </div>
             <div className="card p-4">
@@ -117,15 +188,18 @@ function Dash() {
           <button className="my-2  mx-2 rounded-1 shadow"> <i className="fas fa-bolt"></i></button>
           <button className="my-2 mx-2 rounded-1"> <i className="fas fa-truck"></i></button>
           <button className="my-2 mx-2 rounded-1"> <i className="fas fa-search"></i></button>
-          <button className="my-2 mx-2 rounded-1"> <i className="fas fa-box"></i></button>
-          <button className="my-2 mx-2 rounded-1" onClick={fetchBatchData}> <i className="fas fa-leaf"></i></button>
+          <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("box")}> <i className="fas fa-box"></i></button>
+          <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Supplychain")}> Supply Chain</button>
+          <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Supplychain")}> <i className="fas fa-leaf"></i></button>
           
 
       </div>
 
           {/* Table */}
           <div className="mt-4">
-            <TableView data={data} columns={columns} width="100%" />
+
+            {navigateBar==="Supplychain" && supplyChainData}
+            {navigateBar==="box" && BatchRecords}
           </div>
         </div>
       </div>

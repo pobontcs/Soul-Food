@@ -18,7 +18,7 @@ function Landing(){
   useEffect(() => {
     let start = 0;
     const end = 60; // Target 60%
-    const duration = 2000; // 2 seconds
+    const duration = 4000; // 4 seconds
     const incrementTime = 20;
     const step = (end / (duration / incrementTime));
 
@@ -77,8 +77,8 @@ function Landing(){
                                   <div className='card animate-text mx-5 justify-content-center p-3'>
                                     <p className='word-by-word'>1. Track Harvest</p>
                                     <p className='word-by-word'>2.Track How much Path Crossed</p>
-                                    <p className='word-by-word'>3.Track Preservation Rate</p>
-                                    <p className='word-by-word'>3.Track Preservation Rate</p>
+                                    <p className='word-by-word'>3.Track Condition Rate</p>
+                                    <p className='word-by-word'>4. Ensured high security batching</p>
                                   </div>
                                   <div className='card animate-text mx-5 justify-content-center p-3'>
                                     <h3 className='word-by-word'>Trusted By Many</h3>

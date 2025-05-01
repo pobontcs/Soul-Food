@@ -12,6 +12,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import WareHouse from './Warehouse';
 import Batching from './batching';
 import Landing from './landing';
+import Retailer from './Retailer';
 
 
 function App(){
@@ -19,6 +20,7 @@ function App(){
         <BrowserRouter>
           <Routes>
               <Route path='/' element={<Landing/>}/>
+              <Route path='/retailer' element={<Retailer/>}/>
               <Route path='/login' element={<HomePage/>}/>
               <Route path='/613BRH023' element={<Dash/>}/>
               <Route path='/inspection' element={<Inspection/>}/>

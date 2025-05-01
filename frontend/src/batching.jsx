@@ -363,7 +363,7 @@ function Batching() {
   return (
     <div className='d-flex flex-column' >
       {/* Toggle Buttons */}
-      <div className='card my-5 border-2 d-flex flex-row justify-content-center align-items-center'
+      <div className='card my-5 border-0 d-flex flex-row justify-content-center align-items-center'
         style={{ width: "1000px", backgroundColor: "#575757",height:"120px" }}>
         <button onClick={signout} style={{ background: "transparent", border: "none" }}><i className='fas fa-power-off h-100'></i></button>
 
@@ -380,20 +380,20 @@ function Batching() {
 
       {/* Content Section */}
       <div className='d-flex flex-row ' >
-        <div className='card flex-row border-2 shadow-lg p-3' style={{ width: "400px", height: "500px", backgroundColor: "#D8C9AE" }}>
+        <div className='card flex-row border-2 shadow-lg p-3 border-0' style={{ width: "400px", height: "500px", backgroundColor: "#D8C9AE" }}>
           {activeForm === 'batching' && batching}
           {activeForm === 'producting' && producting}
           {activeForm === 'farmAdd' && farmAdd}
         </div>
 
-        <div className='card flex-row border-2 shadow-lg' style={{ width: "600px", height: "500px", marginLeft: "30px", overflowY: "auto" }}>
+        <div className='card flex-row border-2 shadow-lg border-0' style={{ width: "600px", height: "500px", marginLeft: "30px", overflowY: "auto" }}>
           {activeForm==='batching' && prodTable}
           {activeForm==='producting' && FarmTable}
           {activeForm==='farmAdd' && FarmTable}
         </div>
       </div>
 
-      <div className='card my-5 d-flex flex-row'>
+      <div className='card my-5 d-flex flex-row border-3'>
           <div>
           <TableView columns={columns3} data={data3} />  
           </div>
