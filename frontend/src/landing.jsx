@@ -42,8 +42,8 @@ function Landing(){
                 backgroundColor:'#1c2529'
             }}>
               <div className='d-flex flex-row' style={{marginLeft:"70%"}}>
-                <button onClick={()=>navigate('/warehouse')} className='bg-light rounded mx-2 animate-text'><i className='fas fa-archive ' style={{color:"black"}}></i></button>
-                <button onClick={()=>navigate('/batching')} className='bg-light rounded animate-text' style={{color:"black"}}><i className='fas fa-leaf '></i></button>
+                <button onClick={()=>navigate('/retailer')} className='bg-light rounded mx-2 animate-text'><i className='fas fa-archive ' style={{color:"black"}}></i></button>
+                
                 <button onClick={()=>navigate('/613BRH023')} className='bg-light rounded animate-text mx-2' style={{color:"black"}}><i className='fas fa-house '></i></button>
               </div>
             </div>

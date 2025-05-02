@@ -7,6 +7,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import TableView from './tableView';
 import axios from 'axios';
 function WareHouse() {
+  const[changeTable,setChangeTable]=useState("Retail Req");
   const [storageActive, setStorageActive] = useState('batch');
   const [active, setActive] = useState('down'); 
   const [column1,setColumn1]=useState([]);
@@ -376,22 +377,7 @@ const getStorageButtonClass = (btn) =>
 
         const retail=(
                             <div className='d-flex flex-column my-3'>
-                                  <form>
-                                    <div className='d-flex flex-row my-3 mx-2'> 
-                                                         
-                                                  <input placeholder='RetailerName' style={{marginRight:"300px"}} className='bg-white border-0 rounded p-1  '></input>  
-                                                  <div className='d-flex flex-column align-items-baseline'> <label>Quality Check: </label>
-                                                                                       <label>Expiry: </label>
-                                                  </div>      
-                                                      
-                                    </div>
-                                    <div className='d-flex flex-row my-3 mx-2'> 
-                                            <input className='rounded' placeholder='QCID (mantadory)' required ></input>
-                                            <button className='p-1 rounded shadow-lg'>Confirm</button>
-                                    </div>
-                                    <button>Ship</button>
-                                    </form>
-                                    <TableView columns={["WarehouseId","WareHouse Name","Capacity Left"]} data={warehouseData}></TableView>
+                                  
                             </div>
         );
 

@@ -286,8 +286,55 @@ app.post("/api/warehouse/batch/entry", (req, res) => {
   });
 });
 
+app.post("/api/truck/release", (req, res) => {
+  const { TransportationID } = req.body;
+  console.log("Received TransportationID:", TransportationID); // Check if it's received
 
+  const sql = `UPDATE TRANSPORT SET Available='yes' WHERE TransportationID=?`;
+  db.query(sql, [TransportationID], (err, result) => {
+    if (err) {
+      console.log("Transport update error:", err);
+      return res.status(500).json({ success: false, message: "Database update error" });
+    }
+    res.json({ success: true, message: "Released successfully" });
+  });
+});
 
+app.post("/api/submit/order", (req, res) => {
+  const { Name, Email, Location, items } = req.body;
+
+  if (!Name || !Email || !Location || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ success: false, message: "Invalid input data" });
+  }
+
+  const sql = `INSERT INTO RETAILER_REQ (Amount, BatchID, WarehouseID, Name, Email, Location) VALUES (?, ?, ?, ?, ?, ?)`;
+
+  const values = items.map(item => [item.Quantity, item.BatchID, item.WarehouseID, Name, Email, Location]);
+  let completed = 0;
+  let hasError = false;
+
+  values.forEach(valueSet => {
+    db.query(sql, valueSet, (err, result) => {
+      if (err && !hasError) {
+        hasError = true;
+        console.log("Order Declined", err);
+        return res.status(500).json({ success: false, message: "Database update error" });
+      }
+
+      completed++;
+      if (completed === values.length && !hasError) {
+        res.json({ success: true, message: "Order submitted successfully" });
+      }
+    });
+  });
+});
+//start
+app.post("/api/cast",(req,res)=>{
+    const {Order_no,InspectorID,Temperature,Humidity}=req.body;
+
+    const sql=`UPDATE BATCH_WAREHOUSE`
+
+});
 
 
 
@@ -430,6 +477,13 @@ app.get("/api/add/prod/warehouse",(req,res)=>{
   })
 
 });
+
+
+
+
+
+
+
 app.get("/api/add/prod/warehouse",(req,res)=>{
   db.query('SELECT WarehouseID, Capacity, WarehouseType FROM WAREHOUSE',(err,results,fields)=>{
     if(err){
@@ -443,6 +497,23 @@ app.get("/api/add/prod/warehouse",(req,res)=>{
   })
 
 });
+app.get("/api/cast/away",(req,res)=>{
+  db.query('SELECT Order_no,WarehouseID,Name,Amount,BatchID FROM RETAILER_REQ',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+
+});
+
+
+
+
 app.get("/api/add/prod/batch",(req,res)=>{
   db.query('SELECT BatchID,ProductId,FarmID,Quantity FROM BATCH',(err,results,fields)=>{
     if(err){
@@ -456,6 +527,10 @@ app.get("/api/add/prod/batch",(req,res)=>{
   })
 
 });
+
+
+
+
 app.get("/api/set/transport", (req, res) => {
   db.query(`SELECT TransportationID FROM TRANSPORT WHERE Available='yes'`, (err, results) => {
     if (err) {
@@ -469,14 +544,33 @@ app.get("/api/set/transport", (req, res) => {
     res.json({ success: true, data: transportIds });
   });
 });
+app.get("/api/transport/listing",(req,res)=>{
+  db.query(` SELECT TransportationID FROM TRANSPORT WHERE Available='no' `, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'DB error' });
+    }
+    
+    
+    const transportIds = results.map(row => row.TransportationID);
+
+    res.json({ success: true, data: transportIds });
+  });
+
+});
+
+
+
 
 app.get('/api/retail', (req, res) => {
   const query = `
       SELECT 
+          bw.WarehouseID,
           bw.BatchID,
           p.ProdName,
           p.Origin,
-          bw.Quantity
+          bw.Quantity,
+          b.Temprature
       FROM 
           BATCH_WAREHOUSE bw
       JOIN 

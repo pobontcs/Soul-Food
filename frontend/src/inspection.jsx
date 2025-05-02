@@ -9,65 +9,26 @@ import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend } from "chart.js";
 import axios from 'axios';
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
-
-const ChartComponent = ({ chemicalRate, temperature }) => {
-    const chartData = {
-        labels: Array.from({ length: 11 }, (_, i) => i),
-        datasets: [
-            {
-                label: "Temperature (°C)",
-                data: Array.from({ length: 11 }, (_, i) => (temperature / 10) * i), 
-                borderColor: "#ff4500",
-                backgroundColor: "rgba(255, 69, 0, 0.5)",
-                tension: 0.4,
-            }
-        ]
-    };
-
-    const chartOptions = {
-        scales: {
-            x: { title: { display: true, text: "Rating" }, min: 0, max: 10 },
-            y: { title: { display: true, text: "Temperature (°C)" }, min: 10, max: 100 }
-        }
-    };
-
-    return (
-        <div className="card p-3 mx-5" style={{ width: "600px", backgroundColor: "#fff", boxShadow: "0 10px 10px rgba(0,0,0,0.1)" }}>
-            <h3 className="text-center">Temperature </h3>
-            <Line data={chartData} options={chartOptions} />
-        </div>
-    );
-};
-
-
-
-
-
-
-
-
-
-
-
 
 function Inspection() {
     
-
-    const [onTable,setTable]=useState("WareHouse");
-
+    const [transportID,setTransportID]=useState();
+                                                    const [onTable,setTable]=useState("WareHouse");
+                                                    const handleStatusChange = (e) => {
+                                                        const { name, value } = e.target;
+                                                        setTransportID(prev => ({
+                                                        ...prev,
+                                                        [name]: value
+                                                        }));
+                                                    };
+    const [transport, setTransport] = useState([]);
     const column = ["QCID", "Safety Rate", "Temperature", "Quantity", "Inspector Id", "Date"];
     const [column2,setColumn2] = useState([]);
     const [data2,setData2] = useState([]);
     const [column3,setColumn3] = useState([]);
     const [data3,setData3] = useState([]);
-    const data = [
-        ["QC1234", "High", "25°C", 100, "INS001", "2025-03-22"],
-        ["QC1235", "Medium", "30°C", 150, "INS002", "2025-03-21"],
-        ["QC1236", "Low", "22°C", 200, "INS003", "2025-03-20"],
-        ["QC1237", "High", "28°C", 120, "INS004", "2025-03-19"],
-        ["QC1238", "Medium", "26°C", 180, "INS005", "2025-03-18"]
-    ];
+    const [retData,setRetData]= useState([]);
+    const [retcolumn,setRetColumn]=useState([]);
 
             
 
@@ -76,7 +37,7 @@ function Inspection() {
     const QcRecords=(<TableView data={data3} columns={column3} tableName={"QC DATA"} />);
     const BatchRecords=(<TableView data={data2} columns={column2} tableName={"Batch DATA"} />);
     const reqRecords =(<TableView data={reqData} columns={reqColumn} tableName={'Request Query'}/>);
-
+    const retailRecords=(<TableView data={retData} columns={retcolumn}/>);
 
 
 
@@ -94,6 +55,12 @@ function Inspection() {
         PreserveRate:0,
         Temperature:''
     });
+    const [retailData,setRetailData]=useState({
+                    Order_no:"",
+                    Temperature:"",
+                    Humidity:"",
+                    InspectID:""
+    });
     const handleBatchChange = (e) => {
         const { name, value } = e.target;
         setBatchData(prev => ({
@@ -101,8 +68,54 @@ function Inspection() {
           [name]: value
         }));
       };
+    const handleRetailChange = (e) => {
+        const { name, value } = e.target;
+        setRetailData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      };
+      const FetchRetailData = async () =>{
+        try{
+            const res= await axios.get('http://localhost:5001/api/cast/away');
+            if (res.data.success){
+                setRetData(res.data.data);
+                setRetColumn(res.data.columns);
+            }
+        }
+        catch(err){
+            console.log("Error Retail")
+        }
+    };
+    useEffect(()=>{
+        const FetchRetailData = async () =>{
+            try{
+                const res= await axios.get('http://localhost:5001/api/cast/away');
+                if (res.data.success){
+                    setRetData(res.data.data);
+                    setRetColumn(res.data.columns);
+                }
+            }
+            catch(err){
+                console.log("Error Retail",err)
+            }
+        };
+         FetchRetailData();
+    },[])
 
-
+    useEffect(()=>{
+        const fetchTransportData= async () => { try{
+            const res= await axios.get('http://localhost:5001/api/transport/listing');
+                    if(res.data.success){
+                        setTransport(res.data.data);
+                    }
+        }
+        catch(err){
+            console.log("failed transport data")
+        }
+    }; fetchTransportData();
+       
+    },[]);
     
     useEffect (()=>{
         const fetchReqData= async () =>{
@@ -160,6 +173,33 @@ function Inspection() {
         }; fetchQCData();
     },[]);
 
+    const handleCastAway= async (e)=>{
+        e.preventDefault();
+        const payload={
+            Order_no:retailData.Order_no,
+            InspectorID:retailData.InspectID,
+            Temperature:retailData.Temperature,
+            Humidity:retailData.Humidity
+        };
+        try{
+            const res =await axios.post('http//localhost:5001/api/cast',payload);
+            if(res.data.success){
+                setRetailData({
+                    Order_no:"",
+                    InspectID:"",
+                    Temperature:"",
+                    Humidity:'',
+                });
+            }
+            else{
+                alert("backend error");
+            }
+        }
+        catch(err){
+            alert("UI ERROR");
+        }
+    };
+
         const handleBatchControl= async (e)=>{
             e.preventDefault();
 try{
@@ -190,6 +230,29 @@ try{
             alert("❌ Failed to create batch UI");
         }
 
+        };
+
+        const handleTransportRelease = async (e)=>{
+            e.preventDefault();
+            try{
+
+                const res = await fetch ('http://localhost:5001/api/truck/release',{
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({TransportationID: transportID})
+                });
+                const result = await res.json();
+          if (result.success) {
+            setTransportID('');
+            alert("✅ Transport released");
+            
+          } else {
+            alert("❌ Failed to create batch backend");
+          }
+            }catch(err){
+                console.log(err);
+                alert("❌ Failed to create batch UI");
+            }
         };
 
                 const addToWareHouse=( <form onSubmit={handleBatchControl}>
@@ -352,6 +415,29 @@ try{
                     </form>
                 );
 
+                const CastAway=(
+                <div className='d-flex flex-column'>
+                    <form className='d-flex flex-column' onSubmit={handleCastAway}>
+                       
+                        <input className='bg-white border-0 rounded-1 p-2 text-black' placeholder='InspectorId'
+                        name='InspectID' onChange={handleRetailChange}
+                        required/>
+                        <input className='bg-white border-0 rounded-1 p-2 my-2 text-black' placeholder='OrderNo'
+                        name='Order_no' onChange={handleRetailChange}
+                        required/>
+                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Temperature' type='number'
+                        name='Temperature' onChange={handleRetailChange}
+                        />
+                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Humidity' type='number'
+                        name='Humidity'
+                        onChange={handleRetailChange}
+                        />
+                            <button className='rounded-4 shadow-lg'>Cast AWAY</button>
+                    </form>
+                </div>
+                
+            );
+
 
 
 
@@ -383,6 +469,7 @@ try{
                 <div className='card border-0' style={{ backgroundColor: "#D8C9AE", boxShadow: "0 10px 10px" }}>
                     {onTable=="Requests" && CreateBatch}
                     {onTable=="WareHouse" && addToWareHouse}
+                    {onTable=="Shopping" && CastAway}
                 </div>
 
                 {/* Table View */}
@@ -398,15 +485,41 @@ try{
                                     {onTable=== "WareHouse" && QcRecords}
                                     {onTable=== "Batching" && BatchRecords}
                                     {onTable=== "Requests" && reqRecords}
-                                    {onTable=== "Shopping" && reqRecords}
+                                    {onTable=== "Shopping" && retailRecords}
                     </div>
                     
                 </div>
             </div>
 
-            {/* Chart */}
-            <div className="d-flex justify-content-center m-5">
-                <ChartComponent chemicalRate={chemicalRate} temperature={temperature} />
+            
+            <div className="d-flex justify-content-center m-5 flex-column justify-content-center align-items-center">
+                                                    <h1 >Transport Release</h1>
+                                                        <form  onSubmit={handleTransportRelease} className='d-flex flex-row'>
+                                                        <input
+                                                            list="transport-ids"
+                                                            type="number"
+                                                            placeholder="Transportation ID"
+                                                            name="TransportationID"
+                                                            className="form-control text-black me-2"
+                                                            value={transportID}
+                                                            onChange={(e)=>setTransportID(e.target.value)}
+                                                        />
+                                                        
+                                                        <button type="submit" className="btn btn-danger">
+                                                            Release
+                                                        </button>
+
+                                                        <datalist id="transport-ids">
+                                                            {transport && transport.length > 0 ? (
+                                                            transport.map((id, index) => (
+                                                                <option key={index} value={id} />
+                                                            ))
+                                                            ) : (
+                                                            <option disabled>No transport Occupied</option>
+                                                            )}
+                                                        </datalist>
+                                                        </form>
+
             </div>
         </div>
     );
