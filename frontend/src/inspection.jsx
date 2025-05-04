@@ -330,7 +330,7 @@ try{
                         name='Temperature' type='number' className='rounded border-0 p-1 cursor-pointer w-25 mx-2' ></input>
                         <label>°C</label>
                     </li>
-                    <li><button className='rounded'>Confirm</button></li>
+                    <li><button className='rounded btn btn-dark'>Confirm</button></li>
                 </ul>
                 </form>);
 
@@ -432,7 +432,7 @@ try{
                         name='Humidity'
                         onChange={handleRetailChange}
                         />
-                            <button className='rounded-4 shadow-lg'>Cast AWAY</button>
+                            <button className='btn rounded-4 shadow-lg btn-success shadow-sm'>Cast AWAY</button>
                     </form>
                 </div>
                 

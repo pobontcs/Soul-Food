@@ -332,8 +332,69 @@ app.post("/api/submit/order", (req, res) => {
 app.post("/api/cast",(req,res)=>{
     const {Order_no,InspectorID,Temperature,Humidity}=req.body;
 
-    const sql=`UPDATE BATCH_WAREHOUSE`
+    const sqlUpdate = `
+                  UPDATE BATCH_WAREHOUSE BW
+                  SET BW.Quantity = BW.Quantity - R.Amount
+                  FROM RETAILER_REQ R
+                  WHERE R.Order_no = ? AND BW.BatchID = R.BatchID AND BW.Quantity - R.Amount > 0;
+                `;
 
+    const sqlDelete = `
+                  DELETE BW
+                  FROM BATCH_WAREHOUSE BW
+                  JOIN RETAILER_REQ R ON BW.BatchID = R.BatchID
+                  WHERE R.Order_no = ? AND BW.Quantity - R.Amount <=0;
+                `;
+            db.query(sqlUpdate,[Order_no],(err,result)=>{
+              if(err){
+                console.log("SQL ERROR",err);
+              }
+              db.query(sqlDelete,[Order_no],(err,result)=>{
+                if(err){
+                  console.log("SQL ERROR",err);
+                }
+                 const batchsql=`SELECT BatchID FROM RETAILER_REQ WHERE Order_no=?`;
+              db.query(batchsql,[Order_no],(err,BatchRes)=>{
+                if (err || BatchRes.length === 0) {
+                  console.error("Error fetching ProductID:", err);
+                  return res.status(500).json({ success: false, message: "Failed to fetch ProductID" });
+                }
+                const BatchID= BatchRes[0].BatchID;
+                    const wareQuery =`UPDATE WAREHOUSE W
+                                      JOIN RETAILER_REQ R ON R.WarehouseID = W.WarehouseID
+                                      JOIN BATCH B ON B.BatchID = R.BatchID
+                                      SET W.Capacity = W.Capacity + R.Amount
+                                      WHERE B.BatchID = ?;
+                                      `;
+                    db.query(wareQuery,[BatchID],(err,res)=>{
+                              if(err){
+                                console.error("Error fetching WREID:", err);
+                              }
+                    const qcSql=`INSERT INTO QUALITY_CONTROL_RECORD (BatchID, InspectorName, InspectionDate, InspectorID, Quantity, Temperature)
+                                            SELECT ?, I.Name, CURDATE(), ?, ?, ?
+                                            FROM INSPECTOR I
+                                            WHERE I.InspectorID = ?;
+
+                    `;
+                                db.query(qcSql,[BatchID,InspectorID,null,Temperature],(err,result)=>{
+                                  if(err){
+                                    console.error("Error fetching WREID:", err);
+                                  }
+                                      const sql=``
+
+                                })
+
+                    });
+
+            
+
+              }
+
+              );
+              
+              
+              });
+            });
 });
 
 
