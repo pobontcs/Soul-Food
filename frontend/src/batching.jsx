@@ -397,7 +397,7 @@ function Batching() {
           <div>
           <TableView columns={columns3} data={data3} />  
           </div>
-          <div className='card d-flex flex-column mx-5' style={{backgroundColor:"#676767"}}>
+          <div className='card d-flex flex-column mx-5 shadow' style={{backgroundColor:"#676767"}}>
                         <form className='d-flex flex-column ' onSubmit={handleReqSubmit}>
 
                         <input style={{color:"black"}}

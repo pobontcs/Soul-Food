@@ -16,6 +16,26 @@ const users = {
   wareHouse: { email: "storage", password: "1234" },
 };
 
+///dashboard logic start
+    app.post('/api/delete/batch',(req,res)=>{
+          const {BatchID} = req.body;
+          const sql=`DELETE FROM BATCH WHERE BatchID = ?;`;
+            db.query(sql,[BatchID],(err)=>{
+                    if(err){
+                      return res.status(400).json({ success: false, message: "All fields required" });
+                    }
+                    return res.json({ success: true, message: "Delete Successful" });
+
+            });
+    });
+
+
+
+
+
+
+///dashboard logic end
+
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -328,73 +348,129 @@ app.post("/api/submit/order", (req, res) => {
     });
   });
 });
-//start
-app.post("/api/cast",(req,res)=>{
-    const {Order_no,InspectorID,Temperature,Humidity}=req.body;
 
-    const sqlUpdate = `
-                  UPDATE BATCH_WAREHOUSE BW
-                  SET BW.Quantity = BW.Quantity - R.Amount
-                  FROM RETAILER_REQ R
-                  WHERE R.Order_no = ? AND BW.BatchID = R.BatchID AND BW.Quantity - R.Amount > 0;
-                `;
+app.post("/api/cast", (req, res) => {
+  const { Order_no, InspectorID, Temperature, Humidity } = req.body;
 
-    const sqlDelete = `
-                  DELETE BW
-                  FROM BATCH_WAREHOUSE BW
-                  JOIN RETAILER_REQ R ON BW.BatchID = R.BatchID
-                  WHERE R.Order_no = ? AND BW.Quantity - R.Amount <=0;
-                `;
-            db.query(sqlUpdate,[Order_no],(err,result)=>{
-              if(err){
-                console.log("SQL ERROR",err);
-              }
-              db.query(sqlDelete,[Order_no],(err,result)=>{
-                if(err){
-                  console.log("SQL ERROR",err);
-                }
-                 const batchsql=`SELECT BatchID FROM RETAILER_REQ WHERE Order_no=?`;
-              db.query(batchsql,[Order_no],(err,BatchRes)=>{
-                if (err || BatchRes.length === 0) {
-                  console.error("Error fetching ProductID:", err);
-                  return res.status(500).json({ success: false, message: "Failed to fetch ProductID" });
-                }
-                const BatchID= BatchRes[0].BatchID;
-                    const wareQuery =`UPDATE WAREHOUSE W
-                                      JOIN RETAILER_REQ R ON R.WarehouseID = W.WarehouseID
-                                      JOIN BATCH B ON B.BatchID = R.BatchID
-                                      SET W.Capacity = W.Capacity + R.Amount
-                                      WHERE B.BatchID = ?;
-                                      `;
-                    db.query(wareQuery,[BatchID],(err,res)=>{
-                              if(err){
-                                console.error("Error fetching WREID:", err);
-                              }
-                    const qcSql=`INSERT INTO QUALITY_CONTROL_RECORD (BatchID, InspectorName, InspectionDate, InspectorID, Quantity, Temperature)
-                                            SELECT ?, I.Name, CURDATE(), ?, ?, ?
-                                            FROM INSPECTOR I
-                                            WHERE I.InspectorID = ?;
+  // Corrected UPDATE syntax for MySQL
+  const sqlUpdateBatchWarehouse = `
+    UPDATE BATCH_WAREHOUSE BW
+    JOIN RETAILER_REQ R ON BW.BatchID = R.BatchID
+    SET BW.Quantity = BW.Quantity - R.Amount
+    WHERE R.Order_no = ? AND BW.Quantity - R.Amount > 0;
+  `;
 
-                    `;
-                                db.query(qcSql,[BatchID,InspectorID,null,Temperature],(err,result)=>{
-                                  if(err){
-                                    console.error("Error fetching WREID:", err);
-                                  }
-                                      const sql=``
+  // Corrected DELETE syntax for MySQL
+  const sqlDeleteBatchWarehouse = `
+    DELETE BW FROM BATCH_WAREHOUSE BW
+    JOIN RETAILER_REQ R ON BW.BatchID = R.BatchID
+    WHERE R.Order_no = ? AND BW.Quantity - R.Amount <= 0;
+  `;
 
-                                })
+  db.query(sqlUpdateBatchWarehouse, [Order_no], (err) => {
+    if (err) {
+      console.log("BatchWarehouse Update Error:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
 
-                    });
+    db.query(sqlDeleteBatchWarehouse, [Order_no], (err) => {
+      if (err) {
+        console.log("BatchWarehouse Delete Error:", err);
+        return res.status(500).json({ success: false, message: "Database error" });
+      }
 
+      // Corrected SUPPLYCHAIN_MOVEMENT queries
+      const supplyUpdate = `
+        UPDATE SUPPLYCHAIN_MOVEMENT S
+        JOIN RETAILER_REQ R ON S.BatchID = R.BatchID
+        SET S.Quantity = S.Quantity - R.Amount
+        WHERE R.Order_no = ? AND S.Quantity - R.Amount > 0;
+      `;
+
+      const supplyDelete = `
+        UPDATE SUPPLYCHAIN_MOVEMENT S
+        JOIN RETAILER_REQ R ON S.BatchID = R.BatchID
+        SET S.Stage = 'Retailed', S.CurrentTemprature = ?
+        WHERE R.Order_no = ? AND S.Quantity - R.Amount <= 0;
+      `;
+
+      db.query(supplyUpdate, [Order_no], (err) => {
+        if (err) {
+          console.log("SupplyChain Update Error:", err);
+          return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        db.query(supplyDelete, [Temperature, Order_no], (err) => {
+          if (err) {
+            console.log("SupplyChain Delete Error:", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+          }
+
+          // Get BatchID 
+          const getBatchID = `SELECT BatchID FROM RETAILER_REQ WHERE Order_no = ?`;
+          db.query(getBatchID, [Order_no], (err, batchRes) => {
+            if (err || batchRes.length === 0) {
+              console.log("Error fetching BatchID:", err);
+              return res.status(500).json({ success: false, message: "Failed to fetch BatchID" });
+            }
+
+            const BatchID = batchRes[0].BatchID;
+
+            const updateWarehouse = `
+              UPDATE WAREHOUSE W
+              JOIN RETAILER_REQ R ON R.WarehouseID = W.WarehouseID
+              JOIN BATCH B ON B.BatchID = R.BatchID
+              SET W.Capacity = W.Capacity + R.Amount
+              WHERE B.BatchID = ?;
+            `;
             
-
+            db.query(updateWarehouse, [BatchID], (err) => {
+              if (err) {
+                console.log("Warehouse Capacity Update Error:", err);
+                return res.status(500).json({ success: false, message: "Database error" });
               }
 
-              );
+              const insertQC = `
+                INSERT INTO QUALITY_CONTROL_RECORD 
+                (BatchID, InspectorName, InspectionDate, InspectorID, Quantity, Temperature)
+                SELECT ?, I.Name, CURDATE(), ?, R.Amount, ?
+                FROM INSPECTOR I, RETAILER_REQ R
+                WHERE I.InspectorID = ? AND R.Order_no = ?;
+              `;
               
-              
+              db.query(insertQC, [BatchID, InspectorID, Temperature, InspectorID, Order_no], (err) => {
+                if (err) {
+                  console.log("Quality Control Insert Error:", err);
+                  return res.status(500).json({ success: false, message: "Database error" });
+                }
+
+                const deleteRetailerReq = `DELETE FROM RETAILER_REQ WHERE Order_no = ?`;
+                db.query(deleteRetailerReq, [Order_no], (err) => {
+                  if (err) {
+                    console.log("RetailerReq Delete Error:", err);
+                    return res.status(500).json({ success: false, message: "Database error" });
+                  }
+
+                  const retailSQL = `
+                    INSERT INTO RETAILER(RetailDate, BatchID, InspectorID, Temperature, Humidity)
+                    VALUES(CURDATE(), ?, ?, ?, ?);
+                  `;
+                  
+                  db.query(retailSQL, [BatchID, InspectorID, Temperature, Humidity], (err) => {
+                    if (err) { 
+                      console.log("Retail Insert Error:", err);
+                      return res.status(500).json({ success: false, message: "Database error" });
+                    }
+                    res.json({ success: true, message: "Controlled" });
+                  });
+                });
               });
             });
+          });
+        });
+      });
+    });
+  });
 });
 
 
@@ -437,6 +513,18 @@ app.get('/api/refresh',(req,res)=>{
 
 app.get('/api/farms',(req,res)=>{
     db.query('SELECT * FROM FARM',(err,results,fields)=>{
+        if(err){
+            console.error('Error Fetching Farm Data',err);
+            return res.status(500).json({success:false,message:'DB error'});
+        }
+        const columns=fields.map(field=>field.name);
+        const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+    });
+});
+app.get('/api/retail/data',(req,res)=>{
+    db.query('SELECT RetailDate,InspectorID,BatchID,Temperature FROM RETAILER',(err,results,fields)=>{
         if(err){
             console.error('Error Fetching Farm Data',err);
             return res.status(500).json({success:false,message:'DB error'});

@@ -182,7 +182,7 @@ function Inspection() {
             Humidity:retailData.Humidity
         };
         try{
-            const res =await axios.post('http//localhost:5001/api/cast',payload);
+            const res =await axios.post('http://localhost:5001/api/cast',payload);
             if(res.data.success){
                 setRetailData({
                     Order_no:"",
@@ -190,6 +190,8 @@ function Inspection() {
                     Temperature:"",
                     Humidity:'',
                 });
+                window.location.reload();
+                alert("Cast Away",res.data.message);
             }
             else{
                 alert("backend error");
@@ -221,6 +223,7 @@ try{
         Temperature:''
         })
         alert("✅ Batch created successfully!");
+        window.location.reload();
         
       } else {
         alert("❌ Failed to create batch backend");
@@ -419,16 +422,16 @@ try{
                 <div className='d-flex flex-column'>
                     <form className='d-flex flex-column' onSubmit={handleCastAway}>
                        
-                        <input className='bg-white border-0 rounded-1 p-2 text-black' placeholder='InspectorId'
-                        name='InspectID' onChange={handleRetailChange}
+                        <input className='bg-white border-0 rounded-1 p-2 text-black' placeholder='InspectorId' value={retailData.InspectID}
+                        name='InspectID' onChange={handleRetailChange} 
                         required/>
-                        <input className='bg-white border-0 rounded-1 p-2 my-2 text-black' placeholder='OrderNo'
+                        <input className='bg-white border-0 rounded-1 p-2 my-2 text-black' placeholder='OrderNo' value={retailData.Order_no}
                         name='Order_no' onChange={handleRetailChange}
                         required/>
-                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Temperature' type='number'
+                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Temperature' type='number' value={retailData.Temperature}
                         name='Temperature' onChange={handleRetailChange}
                         />
-                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Humidity' type='number'
+                        <input className='bg-black border-0 rounded-1 p-2 my-2' placeholder='Humidity' type='number' value={retailData.Humidity}
                         name='Humidity'
                         onChange={handleRetailChange}
                         />

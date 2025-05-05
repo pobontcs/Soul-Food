@@ -229,7 +229,7 @@ const getStorageButtonClass = (btn) =>
                       alert("front end er jhamela")
                     }
 
-          }
+          };
 
 
 
@@ -377,6 +377,7 @@ const getStorageButtonClass = (btn) =>
 
         const retail=(
                             <div className='d-flex flex-column my-3'>
+                              
                                   
                             </div>
         );
