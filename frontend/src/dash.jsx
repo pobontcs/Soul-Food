@@ -7,10 +7,11 @@ import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import PieChartComponent from "./piechart";
 import axios from "axios";
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,AreaChart,Area } from "recharts";
+
+
 
 function Dash() {
   const [activeZones,setActiveZones] = useState();
@@ -33,6 +34,83 @@ function Dash() {
   const [column2, setColumn2] = useState([]);
   const [storage,setStorage]=useState();
   const [Capacity,SetCapacity]= useState();
+  const [farmProductCounts, setFarmProductCounts] = useState([]);
+  const [columns4, setColumns4] = useState([]);
+  const [warehouseBatchCounts, setWarehouseBatchCounts] = useState([]);
+  const [columnsWarehouse, setColumnsWarehouse] = useState([]);
+  const [qualityAnalyzeData,setQualityAnalyzeData]= useState([]);
+  const [qualityAnalyzeColumns,setQualityAnalyzeColumns]= useState([]);
+
+
+useEffect(() => {
+  const fetchWarehouseBatchCounts = async () => {
+    try {
+      const res = await axios.get('http://localhost:5001/api/warehouse/batch-count');
+      if (res.data.success) {
+        setColumnsWarehouse(res.data.columns);
+        const formattedData = res.data.data.map(item => ({
+          warehouseID: item[0],
+          batchCount: item[1],
+        }));
+        setWarehouseBatchCounts(formattedData);
+      }
+    } catch (err) {
+      alert("UI error: Unable to fetch warehouse batch counts");
+      console.error(err);
+    }
+  };
+
+  fetchWarehouseBatchCounts();
+}, []);
+
+
+
+useEffect(() => {
+  const fetchQualityTemperatureData = async () => {
+    try {
+      const res = await axios.get('http://localhost:5001/api/quality-control/temperature');
+      if (res.data.success) {
+        const formattedData = res.data.data.map(item => ({
+          RecordID: item[0],
+          Temperature: item[1]
+        }));
+        setQualityAnalyzeData(formattedData);
+        setQualityAnalyzeColumns(res.data.columns);
+      }
+    } catch (err) {
+      console.error('Failed to fetch temperature data:', err);
+      setQualityAnalyzeData([]);
+    }
+  };
+  fetchQualityTemperatureData();
+}, []);
+
+
+
+
+  useEffect(() => {
+    const fetchFarmProductCounts = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/farm/product-count');
+        if (res.data.success) {
+          setColumns4(res.data.columns); 
+          const formattedData = res.data.data.map(item => ({
+            farmName: item[0], 
+            productCount: item[1],
+          }));
+          
+          setFarmProductCounts(formattedData);
+        }
+      } catch (err) {
+        alert("UI error: Unable to fetch farm product counts");
+        console.error(err);  
+      }
+    };
+
+    fetchFarmProductCounts();
+  }, []);
+
+
 
   const [del1,setDel1]=useState({
     BatchID:""
@@ -256,7 +334,7 @@ function Dash() {
   fetchBatchData();
 },[]);
 const supplyChainData=(
-  <div className="d-flex flex-column gap-2">
+  <div className="d-flex flex-column gap-2 container container-fluid">
     <button 
         className="btn btn-dark rounded-2 w-25 py-2"
         onClick={() => navigate('/inspection')}
@@ -268,7 +346,7 @@ const supplyChainData=(
 </div>
 );
 const BatchRecords=(
-<div className="d-flex flex-column" >
+<div className="d-flex flex-column container container-fluid" >
   <form className="d-flex flex-row" onSubmit={handleDeletationBatch}>
     <input className="rounded bg-dark border-0 shadow-sm my-2 p-2 text-light" placeholder="BatchID" onChange={handleBatchChange}
     value={del1.BatchID} name="BatchID"
@@ -278,63 +356,80 @@ const BatchRecords=(
 <TableView data={data2} columns={column2} tableName={"Batch DATA"} />
 </div>);
 
-const Quality=(<div className="d-flex flex-column">
+const Quality=(<div className="d-flex flex-column container container-fluid">
   <TableView data={qcData} columns={qcColumn} tableName={"Quality records"}/>
 
 </div>);
-const Farms=(<div className="d-flex flex-column">
+const Farms=(<div className="d-flex flex-column container container-fluid">
   <button className="btn btn-dark rounded-2 w-25 py-2" onClick={() => navigate('/batching')}><i className="fas fa-desktop"></i>  Batching</button>
   <TableView data={farmData} columns={farmColumn} tableName={"Farm records"}/>
 
 </div>);
 
 const wareHouses=(
-  <div className="d-flex flex-column">
+  <div className="d-flex flex-column container container-fluid">
         <button className="btn btn-dark rounded-2 w-25 py-2" onClick={() => navigate('/warehouse')}><i className="fas fa-desktop"></i> </button>
         <TableView data={wareData} columns={wareColumn} tableName={"Warehouses"}/>
   </div>
 );
 const Retails=(
-  <div className="d-flex flex-column">
+  <div className="d-flex flex-column container container-fluid">
         
         <TableView data={retailData} columns={retailColumn} tableName={"Purchase Phases"}/>
   </div>
 );
 
 const analyze = (
-  <div className="d-flex flex-column gap-4">
-    <h2 className="fw-bold">Analytics Dashboard</h2>
-    <div style={{ width: '100%', height: 300 }}>
-      <ResponsiveContainer>
-        <LineChart data={dummyGraphData}>
+  <div className="d-flex flex-column gap-4 container container-fluid">
+    <div className="d-flex flex-row">
+      <div>
+      <h3>Farm Product Count Analysis</h3>
+      <ResponsiveContainer width={400} height={400}>
+        <BarChart data={farmProductCounts}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis dataKey="FarmID" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="farm" stroke="#8884d8" name="Farms" />
-          <Line type="monotone" dataKey="batch" stroke="#82ca9d" name="Batches" />
-          <Line type="monotone" dataKey="quality" stroke="#ffc658" name="Quality" />
-          <Line type="monotone" dataKey="warehouse" stroke="#ff4d4f" name="Warehouse" />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-
-    <div style={{ width: '100%', height: 300 }}>
-      <ResponsiveContainer>
-        <BarChart data={dummyGraphData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="farm" fill="#8884d8" />
-          <Bar dataKey="batch" fill="#82ca9d" />
-          <Bar dataKey="quality" fill="#ffc658" />
-          <Bar dataKey="warehouse" fill="#ff4d4f" />
+          <Bar dataKey="productCount" fill="#82ca9d" />
         </BarChart>
       </ResponsiveContainer>
+      </div>
+      <div className="mx-3">
+      <h3 className="text-xl font-semibold mb-4">Batches per Warehouse</h3>
+      <ResponsiveContainer width={400} height={400}>
+        <BarChart data={warehouseBatchCounts}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="warehouseID" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="batchCount" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+      </div>
+      <div > 
+      <h3>Qc Analysis</h3>
+      <ResponsiveContainer width={400}height={400}>
+        <AreaChart data={qualityAnalyzeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="RecordID" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Area
+            type="monotone"
+            dataKey="Temperature"
+            stroke="#ff7300"
+            fill="#ff7300"
+            fillOpacity={0.3}
+            name="Temperature (°C)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      </div>
     </div>
+    
   </div>
 );
 
@@ -402,6 +497,7 @@ const analyze = (
           <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Warehouse")}> <i className="fas fa-truck"></i></button>
           <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Quality")}> <i className="fas fa-search"></i></button>
           <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("box")}> <i className="fas fa-box"></i></button>
+          <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Farm")}> <i className="fas fa-leaf"></i></button>
           <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Supplychain")}> Supply Chain</button>
           <button className="my-2 mx-2 rounded-1" onClick={()=>setNavigateBar("Analyze")}> <i className="fas fa-chart-line"></i></button>
           
@@ -419,6 +515,8 @@ const analyze = (
             {navigateBar==="Retail" && Retails}
             {navigateBar==="Analyze" && analyze}
           </div>
+          <div></div>
+          
         </div>
       </div>
     </div>

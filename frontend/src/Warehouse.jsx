@@ -9,6 +9,8 @@ import axios from 'axios';
 function WareHouse() {
   const[changeTable,setChangeTable]=useState("Retail Req");
   const [storageActive, setStorageActive] = useState('batch');
+  const[storage,setStorageColumn]=useState([]);
+  const [capacitance,setStorageData]=useState([]);
   const [active, setActive] = useState('down'); 
   const [column1,setColumn1]=useState([]);
   const [data1,setData1]=useState([]);
@@ -51,6 +53,8 @@ const getStorageButtonClass = (btn) =>
     ["WH009", "Hazardous Goods", 15],
     ["WH010", "Cold Storage", 5]
   ];
+
+
     
   useEffect(()=>{
     const fetchWareHouseData = async()=>{
@@ -65,6 +69,20 @@ const getStorageButtonClass = (btn) =>
       }
     };
       fetchWareHouseData();
+  },[]);
+  useEffect(()=>{
+    const fetchWareHouseStorage = async()=>{
+      try {
+        const res = await axios.get('http://localhost:5001/api/storage');
+        if (res.data.success) {
+          setStorageData(res.data.data3);
+          setStorageColumn(res.data.columns3);
+        }
+      } catch (err) {
+        console.error('Failed to fetch farms:', err);
+      }
+    };
+      fetchWareHouseStorage();
   },[]);
 
   useEffect(() => {
@@ -374,11 +392,13 @@ const getStorageButtonClass = (btn) =>
                     </div>
 
                     );
-
+                        const storageTable=(<TableView columns={storage} data={capacitance} tableName={"WareHouse Status"}/>);
         const retail=(
                             <div className='d-flex flex-column my-3'>
-                              
-                                  
+                              <div className='d-flex flex-row'></div>
+                              <div>
+                                {storageTable}
+                              </div>
                             </div>
         );
 
@@ -394,9 +414,9 @@ const getStorageButtonClass = (btn) =>
 
       <div className=' card d-flex flex-column border-0' style={{height:"1000px",backgroundColor:"#D8C9AE",width:"300px"}}>
 
-              <h4> WareHouse</h4>
+              <h4 className=' display-2  text-white font-weight-bold'> WareHouse</h4>
               <hr></hr>
-
+ 
               <button onClick={() => setActive('down')} className={getButtonClass('down')}>
         <i className={`fas fa-circle-arrow-down ${getIconClass('down')}`}></i>
       </button>
@@ -417,7 +437,7 @@ const getStorageButtonClass = (btn) =>
 
 
 
-      <div className='card d-flex flex-column mx-3 border-0' style={{height:"1000px",width:"1100px",backgroundColor:"#575757"}}>
+      <div className='card d-flex flex-column mx-3 border-0 shadow-lg' style={{height:"1000px",width:"1100px",backgroundColor:"#575757"}}>
   <div>
         {active === 'truck' && retail}
         {active === 'dash' && wareHouseEntry}

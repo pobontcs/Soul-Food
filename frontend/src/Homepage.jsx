@@ -32,10 +32,10 @@ function HomePage() {
             if (data.role === "admin") {
                 navigate("/613BRH023");
             } else if (data.role === "inspector") {
-                navigate("/inspection");
+                navigate("/613BRH023");
             }
             else if(data.role==="wareHouse"){
-                navigate("/warehouse");
+                navigate("/613BRH023");
             }
         } else {
             alert("Invalid email or password!");

@@ -116,10 +116,19 @@ app.post("/api/warehouse/entry",(req,res)=>{
           console.error("Insert error:", err);
           return res.status(500).json({ success: false, message: "Database insert error" });
         }
-        res.json({ success: true, message: "Request sent successfully" });
-      })
+        const sql=`INSERT INTO STORAGE(Capacity) values(?)`
+        db.query(sql,[Capacity],(err)=>{
+          if(err){
+            console.error("Insert error:", err);
+            return res.status(500).json({ success: false, message: "Database insert error" });
+          }
 
-})
+        res.json({ success: true, message: "Request sent successfully" });
+      
+      });
+    });
+
+});
 
 
 
@@ -509,6 +518,18 @@ app.get('/api/refresh',(req,res)=>{
               res.json({success:true,columns3,data3});
             });
 });
+app.get('/api/storage',(req,res)=>{
+            db.query('SELECT * FROM STORAGE',(err,results,fields)=>{
+              if(err){
+                console.error('Error Fetching Farm Data',err);
+            return res.status(500).json({success:false,message:'DB error'});
+              }
+              const columns3=fields.map(field=>field.name);
+              const data3=results.map(row=>Object.values(row));
+
+              res.json({success:true,columns3,data3});
+            });
+});
 
 
 app.get('/api/farms',(req,res)=>{
@@ -549,6 +570,82 @@ app.get('/api/show/batch',(req,res)=>{
     });
 
 });
+
+
+app.get('/api/farm/product-count', (req, res) => {
+  const query = `
+    SELECT F.FarmName, COUNT(P.ProductID) AS productCount
+    FROM FARM F
+    LEFT JOIN PRODUCT P ON F.FarmID = P.FarmID
+    GROUP BY F.FarmName;
+  `;
+
+  db.query(query, (err, results, fields) => {
+    if (err) {
+      console.error('Error fetching product count by farm:', err);
+      return res.status(500).json({ success: false, message: 'DB error' });
+    }
+
+    const columns = fields.map(field => field.name);
+    const data = results.map(row => Object.values(row));
+
+    res.json({ success: true, columns, data });
+  });
+});
+
+app.get('/api/warehouse/batch-count', (req, res) => {
+  const query = `
+    SELECT W.WarehouseID, COUNT(B.BatchID) AS batchCount
+    FROM WAREHOUSE W
+    LEFT JOIN BATCH_WAREHOUSE B ON W.WarehouseID = B.WarehouseID
+    GROUP BY W.WarehouseID;
+  `;
+
+  db.query(query, (err, results, fields) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'DB error' });
+    }
+
+    const columns = fields.map(field => field.name);
+    const data = results.map(row => Object.values(row));
+
+    res.json({ success: true, columns, data });
+  });
+});
+
+// In your backend (index.js or routes file)
+app.get('/api/quality-control/temperature', (req, res) => {
+  const query = `
+    SELECT RecordID, Temperature 
+    FROM QUALITY_CONTROL_RECORD
+    ORDER BY RecordID
+    LIMIT 50;
+  `;
+
+  db.query(query, (err, results, fields) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'DB error' });
+    }
+
+    const columns = fields.map(field => field.name);
+    const data = results.map(row => Object.values(row));
+
+    res.json({ 
+      success: true, 
+      columns, 
+      data 
+    });
+  });
+});
+
+
+
+
+
+
+
 app.get('/api/show/qcid',(req,res)=>{
     db.query('SELECT * FROM QUALITY_CONTROL_RECORD',(err,results,fields)=>{
       if(err){

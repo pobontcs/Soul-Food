@@ -316,7 +316,7 @@ function Batching() {
         required
       />
       <div className='d-flex flex-row'>
-        <label htmlFor="harvestDate" className="form-label text-muted mx-2 my-3">Harvest Date</label>
+        <label htmlFor="harvestDate" className="form-label text-white mx-2 my-3">Harvest Date</label>
         <input
           type='date'
           name='HarvestDate'
@@ -364,7 +364,7 @@ function Batching() {
     <div className='d-flex flex-column' >
       {/* Toggle Buttons */}
       <div className='card my-5 border-0 d-flex flex-row justify-content-center align-items-center'
-        style={{ width: "1000px", backgroundColor: "#575757",height:"120px" }}>
+        style={{ width: "1000px", backgroundColor: "#CA763A",height:"120px" }}>
         <button onClick={signout} style={{ background: "transparent", border: "none" }}><i className='fas fa-power-off h-100'></i></button>
 
         <button onClick={() => setActiveForm('producting')} style={{ background: "transparent", border: "none" }}>
@@ -380,7 +380,7 @@ function Batching() {
 
       {/* Content Section */}
       <div className='d-flex flex-row ' >
-        <div className='card flex-row border-2 shadow-lg p-3 border-0' style={{ width: "400px", height: "500px", backgroundColor: "#D8C9AE" }}>
+        <div className='card flex-row border-2 shadow-lg p-3 border-0' style={{ width: "400px", height: "500px", backgroundColor: "#134B42" }}>
           {activeForm === 'batching' && batching}
           {activeForm === 'producting' && producting}
           {activeForm === 'farmAdd' && farmAdd}
@@ -393,14 +393,14 @@ function Batching() {
         </div>
       </div>
 
-      <div className='card my-5 d-flex flex-row border-3'>
+      <div className='card my-5 d-flex flex-row border-3' style={{backgroundColor:"#575757"}}>
           <div>
           <TableView columns={columns3} data={data3} />  
           </div>
-          <div className='card d-flex flex-column mx-5 shadow' style={{backgroundColor:"#676767"}}>
+          <div className='card d-flex flex-column mx-5 shadow' style={{backgroundColor:"#1C2529"}}>
                         <form className='d-flex flex-column ' onSubmit={handleReqSubmit}>
 
-                        <input style={{color:"black"}}
+                        <input style={{color:"white"}}
               placeholder='ListingID'
   className='rounded border-0  my-2 p-2 text-bg-dark'
   value={Req.ListingID || ''} 
