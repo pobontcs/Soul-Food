@@ -15,6 +15,66 @@ function Batching() {
   const [data, setData] = useState([]);
   const [data2, setData2] = useState([]);
   const [data3,setData3]=useState([]);
+  const [farmDelete,setFarmDelete]=useState({
+    FarmID:''
+  });
+  const [prodDelete,setProdDelete]=useState({
+    ProductID:''
+  });
+  const handleDeleteChange = (e) => {
+    const { name, value } = e.target;
+    setFarmDelete(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleDeletationFarm= async (e)=>{
+    e.preventDefault();
+    
+    try{
+      const res = await fetch('http://localhost:5001/api/delete/farm', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(farmDelete)
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+      
+        setFarmDelete({
+          FarmID:""
+        });
+        const fetchFarmData= async ()=>{
+          try{
+              const res = await axios.get('http://localhost:5001/api/farms');
+                  if(res.data.success){
+                    setColumns(res.data.columns);
+                    setData(res.data.data);
+                  }
+                  else{
+                      alert("API Error");
+                  }
+          }
+          catch(err){
+              console.log(err);
+              alert("UI error",err);
+          }
+      }; fetchFarmData();
+        
+      }
+
+    }
+    catch(err){
+      console.error("Axios error:", err.response?.data || err.message);
+      alert("UI Error");
+    }
+    
+  };
+ 
+
+
+
   const [Req,SetReqData]=useState({
     ListingID:''
   });
@@ -285,8 +345,23 @@ function Batching() {
   );
   
 
-  const prodTable=(<TableView columns={columns2} data={data2}></TableView>);
-  const FarmTable=(<TableView columns={columns} data={data} />);
+  const prodTable=(
+  <div className='d-flex flex-column'>
+    <TableView columns={columns2} data={data2}></TableView>
+    
+  </div>);
+  const FarmTable=(<div className='d-flex flex-column'>
+  
+  <TableView columns={columns} data={data} />
+        <form className='d-flex flex-row my-4' onSubmit={handleDeletationFarm}>
+          <input className='rounded bg-light text-black border-1'name='FarmID' 
+          onChange={handleDeleteChange} value={farmDelete.FarmID}
+          placeholder='FarmID'/>
+          <button className='btn btn-danger rounded'>Delete</button>
+        </form>
+
+</div>
+);
   
 
   const producting = (
@@ -361,10 +436,13 @@ function Batching() {
   );
   const signout = () => navigate("/");
   return (
-    <div className='d-flex flex-column' >
+    <div className='d-flex flex-column'  >
+      
       {/* Toggle Buttons */}
       <div className='card my-5 border-0 d-flex flex-row justify-content-center align-items-center'
         style={{ width: "1000px", backgroundColor: "#CA763A",height:"120px" }}>
+        <h4 className='my-5 mx-5 display-4 text-light'>SoulFOOD</h4>
+        
         <button onClick={signout} style={{ background: "transparent", border: "none" }}><i className='fas fa-power-off h-100'></i></button>
 
         <button onClick={() => setActiveForm('producting')} style={{ background: "transparent", border: "none" }}>
@@ -386,7 +464,7 @@ function Batching() {
           {activeForm === 'farmAdd' && farmAdd}
         </div>
 
-        <div className='card flex-row border-2 shadow-lg border-0' style={{ width: "600px", height: "500px", marginLeft: "30px", overflowY: "auto" }}>
+        <div className='card flex-row border-2 shadow-lg border-0' style={{ width: "700px", height: "500px", marginLeft: "30px", overflowY: "auto" }}>
           {activeForm==='batching' && prodTable}
           {activeForm==='producting' && FarmTable}
           {activeForm==='farmAdd' && FarmTable}

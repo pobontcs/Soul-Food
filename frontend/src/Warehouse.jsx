@@ -18,6 +18,8 @@ function WareHouse() {
   const [data2,setData2]=useState([]);
   const [column3,setColumn3]=useState([]);
   const [data3,setData3]=useState([]);
+  const [b_w,setB_w]=useState([]);
+  const [b_w_data,setB_w_data]=useState([]);
   
   const isStorageActive = (btn) => storageActive === btn;
 
@@ -69,6 +71,20 @@ const getStorageButtonClass = (btn) =>
       }
     };
       fetchWareHouseData();
+  },[]);
+  useEffect(()=>{
+    const fetchBatchWareHouseData = async()=>{
+      try {
+        const res = await axios.get('http://localhost:5001/api/batch/warehouse/data');
+        if (res.data.success) {
+          setB_w(res.data.columns);
+          setB_w_data(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch farms:', err);
+      }
+    };
+      fetchBatchWareHouseData();
   },[]);
   useEffect(()=>{
     const fetchWareHouseStorage = async()=>{
@@ -249,7 +265,73 @@ const getStorageButtonClass = (btn) =>
 
           };
 
+          const [truck,setTruck]=useState({
+            Name:'',
+            Type:''
+          });
+          const handleTruckChange = (e) => {
+            const { name, value } = e.target;
+            setTruck(prev => ({
+              ...prev,
+              [name]: value
+            }));
+          };
+          const handleTruckInput=async (e)=>{
+            e.preventDefault();
+            try{
+              const res = await fetch ('http://localhost:5001/api/truck/add',{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(truck)
+            });
+            const result = await res.json();
+      if (result.success) {
+        setTruck('');
+        alert("✅ Transport Added");
+        
+      } else {
+        alert("❌ Failed to create Truck backend");
+      }
+            }
+            catch(err){
+              alert("UI on Transport")
+            }
+          };
+          const[truckData,setTruckData]=useState([]);
+          const[truckColumn,setTruckColumn]=useState([]);
+          useEffect(() => {
+            const fetchTransportData = async () => {
+              try {
+                const res = await axios.get('http://localhost:5001/api/set/transport/table');
+                if (res.data.success) {
+                  setTruckData(res.data.data);
+                  setTruckColumn(res.data.columns); 
+                }
+              } catch (err) {
+                console.error('Failed to fetch transport:', err);
+              }
+            };
+            fetchTransportData();
+          }, []);
 
+
+          const transportTable=(<TableView data={truckData} columns={truckColumn}/>);
+
+              const info=(
+                <div className='d-flex flex-column'>
+                      <form className='d-flex flex-row my-5' onSubmit={handleTruckInput}>
+                        <h4 className='my-2 mx-4 text-white'>Add Truck:</h4>
+                        <input placeholder='Name' name='Name' value={truck.Name} onChange={handleTruckChange}/>
+                        <input placeholder='Type' name='Type' value={truck.Type} onChange={handleTruckChange}/>
+                        <button className='btn btn-success mx-1 shadow-sm'>Add</button>
+                        
+                      </form>
+                      <div>
+                        <TableView data={b_w_data} columns={b_w} tableName={"Batch WareHouse"}/>
+                      </div>
+
+                </div>
+              );
 
 
 
@@ -300,7 +382,7 @@ const getStorageButtonClass = (btn) =>
                 
                       
                       
-                      <button className='rounded w-25'>Enter Batch</button>
+                      <button className='btn rounded w-25 btn-success'>Enter Batch</button>
                 
           </form>
                     <div className='d-flex flex column'>
@@ -319,6 +401,13 @@ const getStorageButtonClass = (btn) =>
   >
     Warehouses
   </button>
+  <button
+    type="button"
+    className={getStorageButtonClass('truck')}
+    onClick={() => setStorageActive('truck')}
+  >
+    Trucks
+  </button>
 
 
                     </div>
@@ -328,6 +417,7 @@ const getStorageButtonClass = (btn) =>
 
                 {storageActive=='batch' && BatchTable}
                 {storageActive=='warehouse' && ListTable}
+                {storageActive=='truck' && transportTable}
 
                    
             </div>);
@@ -383,7 +473,7 @@ const getStorageButtonClass = (btn) =>
   />
 </div>
 
-<button type="submit" className='my-4 rounded'>Submit</button>
+<button type="submit" className='btn my-4 rounded btn-success'>Submit</button>
 <TableView data={data1} columns={column1} tableName={'WareHouses'} />
 
 </form>
@@ -442,6 +532,7 @@ const getStorageButtonClass = (btn) =>
         {active === 'truck' && retail}
         {active === 'dash' && wareHouseEntry}
         {active === 'down' && inputStorage}
+        {active === 'user' && info}
   </div>
   <div className='my-4'>
       

@@ -28,6 +28,43 @@ const users = {
 
             });
     });
+    app.post('/api/delete/farm',(req,res)=>{
+          const {FarmID} = req.body;
+          const sql=`DELETE FROM FARM WHERE FarmID = ?;`;
+            db.query(sql,[FarmID],(err)=>{
+                    if(err){
+                      return res.status(400).json({ success: false, message: "All fields required" });
+                    }
+                    return res.json({ success: true, message: "Delete Successful" });
+
+            });
+    });
+    app.post('/api/add/inspect',(req,res)=>{
+              const {Name}=req.body;
+              const sql=`INSERT INTO INSPECTOR(Name,Total_Inspections)
+                          VALUES(?,0);`;
+
+                          db.query(sql,[Name],(err,result)=>{
+                            if(err){
+                              return res.status(400).json({ success: false, message: "All fields required" });
+                            }
+                            return res.json({ success: true, message: "ADD Successful" });
+                          });
+    });
+    app.post('/api/truck/add',(req,res)=>{
+              const {Name,Type}=req.body;
+              const sql=`INSERT INTO TRANSPORT(Name,Type,Available)
+                          VALUES(?,?,'yes');`;
+
+                          db.query(sql,[Name,Type],(err,result)=>{
+                            if(err){
+                              return res.status(400).json({ success: false, message: "All fields required" });
+                            }
+                            return res.json({ success: true, message: "ADD Successful" });
+                          });
+    });
+    
+    
 
 
 
@@ -530,6 +567,30 @@ app.get('/api/storage',(req,res)=>{
               res.json({success:true,columns3,data3});
             });
 });
+app.get('/api/set/transport/table',(req,res)=>{
+            db.query('SELECT * FROM TRANSPORT',(err,results,fields)=>{
+              if(err){
+                console.error('Error Fetching Farm Data',err);
+            return res.status(500).json({success:false,message:'DB error'});
+              }
+              const columns=fields.map(field=>field.name);
+              const data=results.map(row=>Object.values(row));
+
+              res.json({success:true,columns,data});
+            });
+});
+app.get('/api/inspector/show',(req,res)=>{
+            db.query('SELECT * FROM INSPECTOR',(err,results,fields)=>{
+              if(err){
+                console.error('Error Fetching Farm Data',err);
+            return res.status(500).json({success:false,message:'DB error'});
+              }
+              const columns=fields.map(field=>field.name);
+              const data=results.map(row=>Object.values(row));
+
+              res.json({success:true,columns,data});
+            });
+});
 
 
 app.get('/api/farms',(req,res)=>{
@@ -700,6 +761,18 @@ app.get("/api/warehouses",(req,res)=>{
 });
 app.get("/api/supplychain",(req,res)=>{
   db.query('SELECT * FROM SUPPLYCHAIN_MOVEMENT',(err,results,fields)=>{
+    if(err){
+      console.error(err);
+      return res.status(500).json({success:false,message:'DB error'});
+    }
+    const columns=fields.map(field=>field.name);
+    const data=results.map(row=>Object.values(row));
+
+        res.json({success:true,columns,data});
+  })
+});
+app.get("/api/batch/warehouse/data",(req,res)=>{
+  db.query('SELECT * FROM BATCH_WAREHOUSE',(err,results,fields)=>{
     if(err){
       console.error(err);
       return res.status(500).json({success:false,message:'DB error'});

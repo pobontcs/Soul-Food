@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TableView from "./tableView";
-import { useNavigate } from 'react-router-dom';
+import { Form, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './App.css';
@@ -41,6 +41,19 @@ function Dash() {
   const [qualityAnalyzeData,setQualityAnalyzeData]= useState([]);
   const [qualityAnalyzeColumns,setQualityAnalyzeColumns]= useState([]);
 
+  const[inspectorColumn,setInspectorColumn]=useState([]);
+  const[inspectorData,setInspectorData]=useState([]);
+  const [inspectorName,setInspectorName]=useState({
+    Name:''
+  });
+  const handleInspectChange = (e) => {
+    const { name, value } = e.target;
+    setInspectorName(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
 
 useEffect(() => {
   const fetchWarehouseBatchCounts = async () => {
@@ -61,6 +74,25 @@ useEffect(() => {
   };
 
   fetchWarehouseBatchCounts();
+}, []);
+useEffect(() => {
+  const fetchInspectorData= async ()=>{
+    try{
+        const res = await axios.get('http://localhost:5001/api/inspector/show');
+            if(res.data.success){
+                setInspectorData(res.data.data);
+                setInspectorColumn(res.data.columns);
+            }
+            else{
+                alert("API Error");
+            }
+    }
+    catch(err){
+        console.log(err);
+        alert("UI error",err);
+    }
+}; fetchInspectorData();
+
 }, []);
 
 
@@ -122,6 +154,47 @@ useEffect(() => {
       [name]: value
     }));
   };
+  
+
+    const handleInspectInput= async (e)=>{
+      e.preventDefault();
+      try{
+        const res = await fetch('http://localhost:5001/api/add/inspect', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(inspectorName)
+        });
+        const result = await res.json();
+        if(result.success){
+          setInspectorName({
+            Name:""
+          });
+          const fetchInspectorData= async ()=>{
+            try{
+                const res = await axios.get('http://localhost:5001/api/inspector/show');
+                    if(res.data.success){
+                        setInspectorData(res.data.data);
+                        setInspectorColumn(res.data.columns);
+                    }
+                    else{
+                        alert("API Error");
+                    }
+            }
+            catch(err){
+                console.log(err);
+                alert("UI error",err);
+            }
+        }; fetchInspectorData();
+
+        }
+
+      }catch(err){
+        alert("inpect submit error UI");
+      }
+    };
+
+
+
   const handleDeletationBatch= async (e)=>{
     e.preventDefault();
     const payload={
@@ -515,7 +588,19 @@ const analyze = (
             {navigateBar==="Retail" && Retails}
             {navigateBar==="Analyze" && analyze}
           </div>
-          <div></div>
+          <div className="card d-flex flex-row container container-flui my-1">
+            <div className="card mx-5 ">
+              <form className="d-flex flex-row container container-fluid" onSubmit={handleInspectInput}>
+                <h3 className="mx-3"> Inspector Input :</h3>
+                <input placeholder="Name" name="Name" onChange={handleInspectChange} value={inspectorName.Name}/>
+                <button className="btn btn-dark"><i className="fas fa-plus"></i></button>
+              </form>
+              
+            </div>
+            <div className="card mx-2"> <TableView data={inspectorData} columns={inspectorColumn}/>
+            </div>
+             
+          </div>
           
         </div>
       </div>
