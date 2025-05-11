@@ -14,7 +14,7 @@ const users = {
   admin: { email: "admin", password: "1234" },
   inspector: { email: "inspect", password: "1234" },
   wareHouse: { email: "storage", password: "1234" },
-};
+};//cors and axios
 
 ///dashboard logic start
     app.post('/api/delete/batch',(req,res)=>{
@@ -28,6 +28,8 @@ const users = {
 
             });
     });
+
+
     app.post('/api/delete/farm',(req,res)=>{
           const {FarmID} = req.body;
           const sql=`DELETE FROM FARM WHERE FarmID = ?;`;
@@ -39,6 +41,8 @@ const users = {
 
             });
     });
+
+
     app.post('/api/add/inspect',(req,res)=>{
               const {Name}=req.body;
               const sql=`INSERT INTO INSPECTOR(Name,Total_Inspections)
@@ -51,6 +55,7 @@ const users = {
                             return res.json({ success: true, message: "ADD Successful" });
                           });
     });
+    
     app.post('/api/truck/add',(req,res)=>{
               const {Name,Type}=req.body;
               const sql=`INSERT INTO TRANSPORT(Name,Type,Available)
@@ -426,7 +431,8 @@ app.post("/api/cast", (req, res) => {
       }
 
       // Corrected SUPPLYCHAIN_MOVEMENT queries
-      const supplyUpdate = `
+      const supplyUpdate =  
+      `
         UPDATE SUPPLYCHAIN_MOVEMENT S
         JOIN RETAILER_REQ R ON S.BatchID = R.BatchID
         SET S.Quantity = S.Quantity - R.Amount

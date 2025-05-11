@@ -65,10 +65,10 @@ function Landing(){
 
                             <div className='d-flex flex-row  rounded-4 my-4'> <h3 className='display-4 word-by-word' style={{color:"#1c2529"}}>The  Most Reliable Tracing System </h3></div>
                             <div className='d-flex flex-column card rounded-4 my-5'> <h1 className='display-4 word-by-word'> Our vision</h1>
-                                <p1 className=' word-by-word'> Our Engineers has Built a Massive Components System</p1>
-                                <p1 className=' word-by-word'> Leading a Agro Product Trace its quality from farm to your home</p1>
+                                <p1 className=' word-by-word'> A Massive Agro Data Control System</p1>
+                                <p1 className=' word-by-word'> Leading a Agro Product Trace its quality from farm to your Shop</p1>
                                 <p1 className=' word-by-word'> Now You Can Have All The Products Details</p1>
-                                <p1 className=' word-by-word'> From Farm To Your Kitchen</p1>
+                                
                             </div>
                             <div className='card d-flex flex-row my-1 rounded-5' style={{backgroundColor:"#1c2529"}}>
                                   <div className='card animate-text w-25 justify-content-center'>

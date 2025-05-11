@@ -32,8 +32,10 @@ function Dash() {
   const[wareData,setWareData]=useState([]);
   const [data2, setData2] = useState([]);
   const [column2, setColumn2] = useState([]);
+
   const [storage,setStorage]=useState();
   const [Capacity,SetCapacity]= useState();
+
   const [farmProductCounts, setFarmProductCounts] = useState([]);
   const [columns4, setColumns4] = useState([]);
   const [warehouseBatchCounts, setWarehouseBatchCounts] = useState([]);
@@ -364,6 +366,7 @@ useEffect(() => {
         }; fetchBatchCount();
 
   },[]);
+  
 
 
 
@@ -550,7 +553,7 @@ const analyze = (
           {/* Info Cards */}
           <div className="d-flex flex-wrap gap-4">
             <div style={{ width: "150px", height: "100px" }}>
-              <CircularProgressbar value={70} maxValue={200} text="Storage" />
+             <CircularProgressbar maxValue={1000} value={200} text="Capacity"/>
             </div>
             <div className="card p-4">
               <p>Active Farms</p>
